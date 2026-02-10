@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Image Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0f172a;
+            color: #f8fafc;
+        }
+        .glass {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px border rgba(255, 255, 255, 0.1);
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #38bdf8 0%, #818cf8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .generate-btn {
+            background: linear-gradient(135deg, #38bdf8 0%, #6366f1 100%);
+            transition: all 0.3s ease;
+        }
+        .generate-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(56, 189, 248, 0.3);
+        }
+        .loader {
+            border-top-color: #38bdf8;
+            animation: spinner 0.6s linear infinite;
+        }
+        @keyframes spinner {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="min-h-screen py-10 px-4">
+    <div class="max-w-4xl mx-auto">
+        <!-- Header -->
+        <header class="text-center mb-12">
+            <h1 class="text-5xl font-extrabold mb-4 gradient-text">Diffusion AI</h1>
+            <p class="text-slate-400 text-lg">Generate stunning 512x512 images from simple text prompts</p>
+        </header>
+
+        {% if messages %}
+            <div class="mb-8">
+                {% for message in messages %}
+                    <div class="p-4 rounded-lg {% if message.tags == 'success' %}bg-emerald-500/20 text-emerald-400 border border-emerald-500/30{% else %}bg-rose-500/20 text-rose-400 border border-rose-500/30{% endif %} mb-2">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <!-- Main Input Section -->
+        <section class="glass p-8 rounded-3xl mb-12 shadow-2xl">
+            <form action="{% url 'generate' %}" method="POST" id="generate-form">
+                {% csrf_token %}
+                <div class="mb-6">
+                    <label for="prompt" class="block text-sm font-medium text-slate-300 mb-2">Enter your prompt</label>
+                    <textarea 
+                        name="prompt" 
+                        id="prompt" 
+                        rows="3" 
+                        class="w-full bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500 transition-all text-white placeholder-slate-500"
+                        placeholder="e.g., A futuristic city with flying cars at sunset, cinematic lighting, digital art..."
+                        required></textarea>
+                </div>
+                <button 
+                    type="submit" 
+                    id="submit-btn"
+                    class="generate-btn w-full py-4 rounded-xl font-bold text-lg shadow-lg flex items-center justify-center gap-2">
+                    <span id="btn-text">Generate Image</span>
+                    <div id="btn-loader" class="hidden h-5 w-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                </button>
+            </form>
+        </section>
+
+        <!-- Generation result -->
+        {% if generated_image %}
+            <section class="mb-12">
+                <h2 class="text-2xl font-bold mb-6 flex items-center gap-2">
+                    <span class="w-2 h-8 bg-sky-500 rounded-full"></span>
+                    Latest Generation
+                </h2>
+                <div class="glass p-4 rounded-3xl flex flex-col items-center">
+                    <img src="{{ generated_image.image.url }}" alt="{{ generated_image.prompt }}" class="rounded-2xl shadow-xl max-w-full h-auto border border-slate-700">
+                    <p class="mt-4 text-slate-400 italic text-center px-4">"{{ generated_image.prompt }}"</p>
+                    <a href="{{ generated_image.image.url }}" download class="mt-6 text-sky-400 hover:text-sky-300 font-medium flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                        Download Image
+                    </a>
+                </div>
+            </section>
+        {% endif %}
+
+        <!-- Recent Gallery -->
+        <section>
+            <h2 class="text-2xl font-bold mb-6 flex items-center gap-2">
+                <span class="w-2 h-8 bg-indigo-500 rounded-full"></span>
+                Recent Creations
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for img in recent_images %}
+                    <div class="glass p-3 rounded-2xl group transition-all hover:scale-[1.02]">
+                        <img src="{{ img.image.url }}" alt="{{ img.prompt }}" class="rounded-xl w-full aspect-square object-cover mb-3">
+                        <p class="text-xs text-slate-500 mb-1">{{ img.created_at|date:"M d, Y H:i" }}</p>
+                        <p class="text-sm text-slate-300 line-clamp-2">{{ img.prompt }}</p>
+                    </div>
+                {% empty %}
+                    <div class="col-span-full py-12 text-center glass rounded-2xl border-dashed border-2 border-slate-700">
+                        <p class="text-slate-500">No images generated yet. Start dreaming!</p>
+                    </div>
+                {% endfor %}
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="mt-20 text-center text-slate-500 text-sm">
+            <p>© 2026 Diffusion AI. Professional Image Generation.</p>
+        </footer>
+    </div>
+
+    <script>
+        document.getElementById('generate-form').addEventListener('submit', function() {
+            const btn = document.getElementById('submit-btn');
+            const loader = document.getElementById('btn-loader');
+            const text = document.getElementById('btn-text');
+            
+            btn.disabled = true;
+            btn.classList.add('opacity-70', 'cursor-not-allowed');
+            loader.classList.remove('hidden');
+            text.innerText = 'Generating (this may take a minute)...';
+        });
+    </script>
+</body>
+</html>
