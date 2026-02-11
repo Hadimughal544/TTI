@@ -1,9 +1,10 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.core.files.base import ContentFile
 from .models import GeneratedImage
 from .services import diffusion_service
 import uuid
+import os
 
 def index(request):
     images = GeneratedImage.objects.all().order_by('-created_at')[:10]
@@ -36,5 +37,21 @@ def generate(request):
             })
         except Exception as e:
             messages.error(request, f"Failed to generate image: {str(e)}")
+    
+    return redirect('index')
+
+def delete_image(request, image_id):
+    image = get_object_or_404(GeneratedImage, id=image_id)
+    try:
+        # Delete the file from filesystem
+        if image.image:
+            if os.path.isfile(image.image.path):
+                os.remove(image.image.path)
+        
+        # Delete the database record
+        image.delete()
+        messages.success(request, "Image deleted successfully.")
+    except Exception as e:
+        messages.error(request, f"Error deleting image: {str(e)}")
     
     return redirect('index')

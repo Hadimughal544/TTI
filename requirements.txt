@@ -1,0 +1,11 @@
+django>=5.0
+psycopg2-binary
+diffusers
+torch
+torchvision
+torchaudio
+Pillow
+transformers
+accelerate
+safetensors
+python-dotenv

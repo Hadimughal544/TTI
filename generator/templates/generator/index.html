@@ -89,15 +89,22 @@
                     <span class="w-2 h-8 bg-sky-500 rounded-full"></span>
                     Latest Generation
                 </h2>
-                <div class="glass p-4 rounded-3xl flex flex-col items-center">
+                <div class="glass p-4 rounded-3xl flex flex-col items-center relative">
+                    <a href="{% url 'delete_image' generated_image.id %}" class="absolute top-6 right-6 p-2 bg-rose-500/80 hover:bg-rose-600 rounded-full text-white shadow-lg transition-colors" title="Delete image">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                    </a>
                     <img src="{{ generated_image.image.url }}" alt="{{ generated_image.prompt }}" class="rounded-2xl shadow-xl max-w-full h-auto border border-slate-700">
                     <p class="mt-4 text-slate-400 italic text-center px-4">"{{ generated_image.prompt }}"</p>
-                    <a href="{{ generated_image.image.url }}" download class="mt-6 text-sky-400 hover:text-sky-300 font-medium flex items-center gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                        </svg>
-                        Download Image
-                    </a>
+                    <div class="flex gap-4 mt-6">
+                        <a href="{{ generated_image.image.url }}" download class="text-sky-400 hover:text-sky-300 font-medium flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                            </svg>
+                            Download
+                        </a>
+                    </div>
                 </div>
             </section>
         {% endif %}
@@ -110,7 +117,12 @@
             </h2>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {% for img in recent_images %}
-                    <div class="glass p-3 rounded-2xl group transition-all hover:scale-[1.02]">
+                    <div class="glass p-3 rounded-2xl group transition-all hover:scale-[1.02] relative">
+                        <a href="{% url 'delete_image' img.id %}" class="absolute top-5 right-5 p-2 bg-rose-500/80 hover:bg-rose-600 rounded-lg text-white opacity-0 group-hover:opacity-100 transition-all shadow-lg" title="Delete image">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                        </a>
                         <img src="{{ img.image.url }}" alt="{{ img.prompt }}" class="rounded-xl w-full aspect-square object-cover mb-3">
                         <p class="text-xs text-slate-500 mb-1">{{ img.created_at|date:"M d, Y H:i" }}</p>
                         <p class="text-sm text-slate-300 line-clamp-2">{{ img.prompt }}</p>
